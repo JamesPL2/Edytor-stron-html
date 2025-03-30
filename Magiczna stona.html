@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edytor HTML</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+        }
+        .editor-container {
+            flex-grow: 1;
+            padding: 20px;
+            border-right: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+        .code-container {
+            width: 30%;
+            padding: 20px;
+            background: #f4f4f4;
+            font-family: monospace;
+            font-size: 16px;
+            overflow: auto;
+            min-width: 200px;
+            max-width: none;
+            border-left: 5px solid #ccc;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .resizer {
+            width: 5px;
+            background: #999;
+            cursor: ew-resize;
+            position: absolute;
+            left: -5px;
+            top: 0;
+            bottom: 0;
+        }
+        .editable {
+            border: 1px dashed gray;
+            padding: 10px;
+            min-height: 300px;
+            margin-top: 10px;
+            flex-grow: 1;
+        }
+        button.small-button {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            padding: 3px 7px;
+            font-size: 12px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            flex-grow: 1;
+            margin: 0;
+            overflow: auto;
+            background: #f4f4f4;
+            padding: 10px;
+        }
+        .button-group {
+            margin-bottom: 10px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 5px;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+        .modal-content button {
+            padding: 8px 16px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="editor-container">
+        <h2>Edytuj stronę:</h2>
+        <div class="button-group">
+            <button onclick="dodajNaglowek()">Dodaj nagłówek</button>
+            <button onclick="dodajParagraf()">Dodaj akapit</button>
+            <button onclick="dodajTabele()">Dodaj tabelę</button>
+            <button onclick="dodajListe()">Dodaj listę</button>
+        </div>
+        <div class="editable" contenteditable="true" id="editor">
+            <h1>Witaj na stronie!</h1>
+            <p>Kliknij i edytuj ten tekst.</p>
+        </div>
+    </div>
+
+    <div class="code-container" id="codeContainer">
+        <div class="resizer" id="resizer"></div>
+        <button class="small-button" onclick="pobierzKod()">⬇️</button>
+        <h2>Kod HTML:</h2>
+        <pre id="code"></pre>
+    </div>
+
+    <!-- Modal dla listy -->
+    <div id="listaModal" class="modal">
+        <div class="modal-content">
+            <h3>Tworzenie listy</h3>
+            <label for="elementyListy">Ile elementów ma mieć lista?</label>
+            <input type="number" id="elementyListy" min="1" max="20" value="3">
+            <div>
+                <button onclick="utworzListe()">Utwórz</button>
+                <button onclick="document.getElementById('listaModal').style.display='none'">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal dla tabeli -->
+    <div id="tabelaModal" class="modal">
+        <div class="modal-content">
+            <h3>Tworzenie tabeli</h3>
+            <label for="kolumnyTabeli">Ile kolumn ma mieć tabela?</label>
+            <input type="number" id="kolumnyTabeli" min="1" max="10" value="2">
+            <label for="wierszTabeli">Ile wierszy ma mieć tabela?</label>
+            <input type="number" id="wierszTabeli" min="1" max="20" value="2">
+            <div>
+                <button onclick="utworzTabele()">Utwórz</button>
+                <button onclick="document.getElementById('tabelaModal').style.display='none'">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function aktualizujKod() {
+            let zawartosc = document.getElementById("editor").innerHTML;
+            let kodHTML = `<!DOCTYPE html>\n<html lang="pl">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Moja strona</title>\n</head>\n<body>\n${zawartosc}\n</body>\n</html>`;
+            document.getElementById("code").textContent = kodHTML;
+        }
+
+        document.getElementById("editor").addEventListener("input", aktualizujKod);
+
+        function dodajNaglowek() {
+            const nowyNaglowek = document.createElement('h2');
+            nowyNaglowek.textContent = 'Nowy nagłówek';
+            document.getElementById("editor").appendChild(nowyNaglowek);
+            aktualizujKod();
+        }
+
+        function dodajParagraf() {
+            const nowyParagraf = document.createElement('p');
+            nowyParagraf.textContent = 'Nowy paragraf';
+            document.getElementById("editor").appendChild(nowyParagraf);
+            aktualizujKod();
+        }
+
+        function dodajTabele() {
+            document.getElementById('tabelaModal').style.display = 'block';
+        }
+
+        function utworzTabele() {
+            const kolumny = parseInt(document.getElementById('kolumnyTabeli').value);
+            const wiersze = parseInt(document.getElementById('wierszTabeli').value);
+            
+            let tabela = document.createElement('table');
+            tabela.setAttribute('border', '1');
+            
+            // Nagłówki
+            let naglowek = document.createElement('tr');
+            for (let i = 0; i < kolumny; i++) {
+                let th = document.createElement('th');
+                th.textContent = `Kolumna ${i+1}`;
+                naglowek.appendChild(th);
+            }
+            tabela.appendChild(naglowek);
+            
+            // Wiersze i komórki
+            for (let i = 0; i < wiersze; i++) {
+                let wiersz = document.createElement('tr');
+                for (let j = 0; j < kolumny; j++) {
+                    let td = document.createElement('td');
+                    td.textContent = `Wiersz ${i+1}, Komórka ${j+1}`;
+                    wiersz.appendChild(td);
+                }
+                tabela.appendChild(wiersz);
+            }
+            
+            document.getElementById("editor").appendChild(tabela);
+            document.getElementById('tabelaModal').style.display = 'none';
+            aktualizujKod();
+        }
+
+        function dodajListe() {
+            document.getElementById('listaModal').style.display = 'block';
+        }
+
+        function utworzListe() {
+            const elementy = parseInt(document.getElementById('elementyListy').value);
+            
+            let lista = document.createElement('ul');
+            
+            for (let i = 0; i < elementy; i++) {
+                let element = document.createElement('li');
+                element.textContent = `Element listy ${i+1}`;
+                lista.appendChild(element);
+            }
+            
+            document.getElementById("editor").appendChild(lista);
+            document.getElementById('listaModal').style.display = 'none';
+            aktualizujKod();
+        }
+
+        function pobierzKod() {
+            let kod = document.getElementById("code").textContent;
+            let blob = new Blob([kod], { type: "text/html" });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "moja_strona.html";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Obsługa zmiany szerokości panelu kodu
+        const resizer = document.getElementById("resizer");
+        const codeContainer = document.getElementById("codeContainer");
+        let isResizing = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        resizer.addEventListener("mousedown", (event) => {
+            isResizing = true;
+            startX = event.clientX;
+            startWidth = codeContainer.offsetWidth;
+            document.addEventListener("mousemove", resize);
+            document.addEventListener("mouseup", stopResize);
+        });
+
+        function resize(event) {
+            if (isResizing) {
+                const newWidth = startWidth - (event.clientX - startX);
+                if (newWidth >= 200) {
+                    codeContainer.style.width = newWidth + "px";
+                }
+            }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            document.removeEventListener("mousemove", resize);
+            document.removeEventListener("mouseup", stopResize);
+        }
+
+        aktualizujKod();
+    </script>
+
+</body>
+</html>

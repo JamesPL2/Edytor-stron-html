@@ -1,2 +1,2 @@
 # Edytor-stron-html
-Stworzyłem prosty edytor stron, na razie można tworzyć tylko stronę html z kilkoma funkcjami. Zezwalam na modyfikację projektu
+Narazie mozna pobrać kod, sprawdzić z boku jak wyglada od strony kodowania nasza strona i dodać kilka elementów.
